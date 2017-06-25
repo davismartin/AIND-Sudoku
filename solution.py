@@ -35,9 +35,18 @@ def naked_twins(values):
     peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
     # Find all instances of naked twins
     # Eliminate the naked twins as possibilities for their peers
-    print(values)
+    # print(values)
     potential_twins = [key for key,val in values.items() if len(val) == 2]
-    print(potential_twins)
+    print("twins",potential_twins)
+    for twin in potential_twins:
+        for peer in peers[twin]:
+            if peer in potential_twins and values[peer] == values[twin]:
+                
+                print("peer",peer)
+                print("twin",twin)
+                print("value1", values[peer])
+                print("value2", values[twin])
+
     # for val in potential_twins:
         # for peer in peers[val]:
             # print("peer",peer)
@@ -129,6 +138,7 @@ def reduce_puzzle(values):
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
         eliminate(values)
         only_choice(values)
+        naked_twins(values)
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
         stalled = solved_values_before == solved_values_after
         if len([box for box in values.keys() if len(values[box]) == 0]):

@@ -8,7 +8,6 @@ def assign_value(values, box, value):
     Please use this function to update your values dictionary!
     Assigns a value to a given box. If it updates the board record it.
     """
-
     # Don't waste memory appending actions that don't actually change any values
     if values[box] == value:
         return values
@@ -16,6 +15,7 @@ def assign_value(values, box, value):
     values[box] = value
     if len(value) == 1:
         assignments.append(values.copy())
+
     return values
 
 def naked_twins(values):
@@ -69,8 +69,11 @@ def grid_values(grid):
             Values: The value in each box, e.g., '8'. If the box has no value, then the value will be '123456789'.
     """
     boxes = cross(rows,cols)
+    values = {box:'' for box in boxes}
     chars = [val if val in digits else digits for val in grid]
-    return dict(zip(boxes, chars))
+    for i,key in enumerate(values):
+        assign_value(values,key,chars[i])
+    return values
 
 def display(values):
     """
@@ -100,6 +103,7 @@ def eliminate(values):
             for peer in peers[key]:
                 if len(values[peer]) == 1:
                     val = val.replace(values[peer],"")
+        assign_value(values,key,val)
         values[key] = val
     return values
 
@@ -115,6 +119,7 @@ def only_choice(values):
         for digit in '123456789':
             count = [box for box in unit if digit in values[box]]
             if len(count) == 1:
+                assign_value(values,count[0],digit)
                 values[count[0]] = digit
     return values
 

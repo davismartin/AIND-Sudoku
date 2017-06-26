@@ -38,15 +38,19 @@ def naked_twins(values):
     # print(values)
     potential_twins = [key for key,val in values.items() if len(val) == 2]
     print("twins",potential_twins)
+    naked_twins = []
     for twin in potential_twins:
         for peer in peers[twin]:
             if peer in potential_twins and values[peer] == values[twin]:
-                
-                print("peer",peer)
-                print("twin",twin)
-                print("value1", values[peer])
-                print("value2", values[twin])
-
+                naked_twins.append([twin,peer])
+                # print("peer",peer)
+                # print("twin",twin)
+                # print("value1", values[peer])
+                # print("value2", values[twin])
+    for i in range(len(naked_twins)):
+        twin1 = naked_twins[i][0]
+        twin2 = naked_twins[i][1]
+    print('naked_twins',naked_twins)
     # for val in potential_twins:
         # for peer in peers[val]:
             # print("peer",peer)
@@ -136,8 +140,9 @@ def reduce_puzzle(values):
     stalled = False
     while not stalled:
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
-        eliminate(values)
-        only_choice(values)
+        values = eliminate(values)
+        values = only_choice(values)
+        # values = naked_twins(values)
         naked_twins(values)
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
         stalled = solved_values_before == solved_values_after

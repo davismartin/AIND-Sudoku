@@ -2,6 +2,17 @@ assignments = []
 rows = 'ABCDEFGHI'
 cols = '123456789'
 digits = '123456789'
+def cross(A, B):
+    "Cross product of elements in A and elements in B."
+    return [s+t for s in A for t in B]
+
+boxes = cross(rows,cols)
+row_units = [cross(r, cols) for r in rows]
+column_units = [cross(rows, c) for c in cols]
+square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
+unitlist = row_units + column_units + square_units
+units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
+peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
 
 def assign_value(values, box, value):
     """
@@ -26,50 +37,21 @@ def naked_twins(values):
     Returns:
         the values dictionary with the naked twins eliminated from peers.
     """
-    boxes = cross(rows,cols)
-    row_units = [cross(r, cols) for r in rows]
-    column_units = [cross(rows, c) for c in cols]
-    square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
-    unitlist = row_units + column_units + square_units
-    units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
-    peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
-    # Find all instances of naked twins
-    # Eliminate the naked twins as possibilities for their peers
-    # print(values)
     potential_twins = [key for key,val in values.items() if len(val) == 2]
-    print("twins",potential_twins)
     naked_twins = []
     for twin in potential_twins:
         for peer in peers[twin]:
             if peer in potential_twins and values[peer] == values[twin]:
                 naked_twins.append([twin,peer])
-                # print("peer",peer)
-                # print("twin",twin)
-                # print("value1", values[peer])
-                # print("value2", values[twin])
     for i in range(len(naked_twins)):
         twin1 = naked_twins[i][0]
         twin2 = naked_twins[i][1]
-    print('naked_twins',naked_twins)
-    # for val in potential_twins:
-        # for peer in peers[val]:
-            # print("peer",peer)
-            # print("peer_val",values[peer])
-            # print("values_val",values[val])
-
-    # for key,val in values.items():
-    #     for
-    #     if len(val) > 1:
-    #         for peer in peers[key]:
-    #             if len(values[peer]) == 1:
-    #                 val = val.replace(values[peer],"")
-    #     values[key] = val
-    # return values
-
-def cross(A, B):
-    "Cross product of elements in A and elements in B."
-    return [s+t for s in A for t in B]
-
+        twin_peers = peers[twin1] & peers[twin2]
+        for box in twin_peers:
+            if len(values[box]) > 2:
+                for val in values[twin1]:
+                    values = assign_value(values,box,values[box].replace(val,''))
+    return values
 
 def grid_values(grid):
     """
@@ -81,11 +63,10 @@ def grid_values(grid):
             Keys: The boxes, e.g., 'A1'
             Values: The value in each box, e.g., '8'. If the box has no value, then the value will be '123456789'.
     """
-    boxes = cross(rows,cols)
     values = {box:'' for box in boxes}
     chars = [val if val in digits else digits for val in grid]
     for i,key in enumerate(values):
-        assign_value(values,key,chars[i])
+        values = assign_value(values,key,chars[i])
     return values
 
 def display(values):
@@ -94,7 +75,6 @@ def display(values):
     Args:
         values(dict): The sudoku in dictionary form
     """
-    boxes = cross(rows,cols)
     width = 1+max(len(values[s]) for s in boxes)
     line = '+'.join(['-'*(width*3)]*3)
     for r in rows:
@@ -104,36 +84,20 @@ def display(values):
     return
 
 def eliminate(values):
-    boxes = cross(rows,cols)
-    row_units = [cross(r, cols) for r in rows]
-    column_units = [cross(rows, c) for c in cols]
-    square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
-    unitlist = row_units + column_units + square_units
-    units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
-    peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
     for key,val in values.items():
         if len(val) > 1:
             for peer in peers[key]:
                 if len(values[peer]) == 1:
                     val = val.replace(values[peer],"")
-        assign_value(values,key,val)
-        values[key] = val
+        values = assign_value(values,key,val)
     return values
 
 def only_choice(values):
-    boxes = cross(rows,cols)
-    row_units = [cross(r, cols) for r in rows]
-    column_units = [cross(rows, c) for c in cols]
-    square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
-    unitlist = row_units + column_units + square_units
-    units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
-    peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
     for unit in unitlist:
         for digit in '123456789':
             count = [box for box in unit if digit in values[box]]
             if len(count) == 1:
-                assign_value(values,count[0],digit)
-                values[count[0]] = digit
+                values = assign_value(values,count[0],digit)
     return values
 
 def reduce_puzzle(values):
@@ -142,8 +106,7 @@ def reduce_puzzle(values):
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
         values = eliminate(values)
         values = only_choice(values)
-        # values = naked_twins(values)
-        naked_twins(values)
+        values = naked_twins(values)
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
         stalled = solved_values_before == solved_values_after
         if len([box for box in values.keys() if len(values[box]) == 0]):
@@ -151,13 +114,6 @@ def reduce_puzzle(values):
     return values
 
 def search(values):
-    boxes = cross(rows,cols)
-    row_units = [cross(r, cols) for r in rows]
-    column_units = [cross(rows, c) for c in cols]
-    square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
-    unitlist = row_units + column_units + square_units
-    units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
-    peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
     values = reduce_puzzle(values)
     if values is False:
         return False

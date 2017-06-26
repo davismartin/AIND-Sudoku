@@ -91,12 +91,11 @@ def display(values):
     return
 
 def eliminate(values):
-    for key,val in values.items():
-        if len(val) > 1:
-            for peer in peers[key]:
-                if len(values[peer]) == 1:
-                    val = val.replace(values[peer],"")
-        values = assign_value(values,key,val)
+    solved_values = [box for box in values.keys() if len(values[box]) == 1]
+    for box in solved_values:
+        digit = values[box]
+        for peer in peers[box]:
+            values = assign_value(values, peer, values[peer].replace(digit,''))
     return values
 
 def only_choice(values):

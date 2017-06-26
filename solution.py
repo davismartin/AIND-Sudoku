@@ -1,6 +1,8 @@
 assignments = []
 rows = 'ABCDEFGHI'
 cols = '123456789'
+cols_rev = cols[::-1]
+print(cols_rev)
 digits = '123456789'
 def cross(A, B):
     "Cross product of elements in A and elements in B."
@@ -10,7 +12,10 @@ boxes = cross(rows,cols)
 row_units = [cross(r, cols) for r in rows]
 column_units = [cross(rows, c) for c in cols]
 square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
-unitlist = row_units + column_units + square_units
+# Add logic for diagonals left just inverted columns
+diagonal_right_units = [[rows[i]+cols[i] for i in range(len(rows))]]
+diagonal_left_units = [[rows[i]+cols_rev[i] for i in range(len(rows))]]
+unitlist = row_units + column_units + square_units + diagonal_right_units + diagonal_left_units
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
 
@@ -43,6 +48,8 @@ def naked_twins(values):
         for peer in peers[twin]:
             if peer in potential_twins and values[peer] == values[twin]:
                 naked_twins.append([twin,peer])
+    # create set of common peers for naked twins
+    # Then remove naked twin value from peers
     for i in range(len(naked_twins)):
         twin1 = naked_twins[i][0]
         twin2 = naked_twins[i][1]

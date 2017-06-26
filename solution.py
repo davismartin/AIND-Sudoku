@@ -46,7 +46,7 @@ def naked_twins(values):
     naked_twins = []
     for twin in potential_twins:
         for peer in peers[twin]:
-            if peer in potential_twins and values[peer] == values[twin]:
+            if values[peer] == values[twin]:
                 naked_twins.append([twin,peer])
     # create set of common peers for naked twins
     # Then remove naked twin value from peers

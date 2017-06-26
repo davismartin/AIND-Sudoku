@@ -1,8 +1,8 @@
+# Global values used in methods below
 assignments = []
 rows = 'ABCDEFGHI'
 cols = '123456789'
 cols_rev = cols[::-1]
-print(cols_rev)
 digits = '123456789'
 def cross(A, B):
     "Cross product of elements in A and elements in B."
@@ -15,6 +15,7 @@ square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','45
 # Add logic for diagonals left just inverted columns
 diagonal_right_units = [[rows[i]+cols[i] for i in range(len(rows))]]
 diagonal_left_units = [[rows[i]+cols_rev[i] for i in range(len(rows))]]
+# Constraints
 unitlist = row_units + column_units + square_units + diagonal_right_units + diagonal_left_units
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
@@ -42,22 +43,23 @@ def naked_twins(values):
     Returns:
         the values dictionary with the naked twins eliminated from peers.
     """
-    potential_twins = [key for key,val in values.items() if len(val) == 2]
-    naked_twins = []
-    for twin in potential_twins:
-        for peer in peers[twin]:
-            if values[peer] == values[twin]:
-                naked_twins.append([twin,peer])
-    # create set of common peers for naked twins
-    # Then remove naked twin value from peers
-    for i in range(len(naked_twins)):
-        twin1 = naked_twins[i][0]
-        twin2 = naked_twins[i][1]
-        twin_peers = peers[twin1] & peers[twin2]
-        for box in twin_peers:
-            if len(values[box]) > 2:
-                for val in values[twin1]:
-                    values = assign_value(values,box,values[box].replace(val,''))
+    for unit in unitlist:
+        # Get possible values for each square in unit
+        numbers = [values[square] for square in unit]
+        # count how many times a number appears
+        num_count = [numbers.count(val) for val in numbers]
+        # Find naked twins if appears twice and has two possible values
+        naked_twins = [unit[i] for i in range(9) if num_count[i]==2 and len(numbers[i])==2]
+        # find number of non-twins by subtracting sets
+        non_twins = set(unit) - set(naked_twins)
+        #iterate over naked_twins
+        for box in naked_twins:
+            # Get value for each non-twin
+            for digit in values[box]:
+                # go over all non-twins and eliminate naked twins to shrink search space
+                for num in non_twins:
+                    if len(values[num])>1:
+                        assign_value(values,num,values[num].replace(digit,''))
     return values
 
 def grid_values(grid):
@@ -145,7 +147,8 @@ def solve(grid):
     return search(grid_values(grid))
 
 if __name__ == '__main__':
-    diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
+    # diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
+    diag_sudoku_grid = '9.1....8.8.5.7..4.2.4....6...7......5..............83.3..6......9................'
     display(solve(diag_sudoku_grid))
     try:
         from visualize import visualize_assignments
